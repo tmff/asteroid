@@ -1,0 +1,69 @@
+[gd_scene format=3 uid="uid://h080cxhr1uo5"]
+
+[ext_resource type="Script" uid="uid://bww8ykv8dubty" path="res://scripts/asteroid.gd" id="1_o5qli"]
+[ext_resource type="Shader" uid="uid://dm73abt1ajdo3" path="res://shaders/sky.gdshader" id="1_sugp2"]
+[ext_resource type="Script" uid="uid://b7i14h7nim80g" path="res://scripts/asteroid_mesh.gd" id="2_0wfyh"]
+[ext_resource type="ArrayMesh" path="res://asteroid_mesh.res" id="3_tefeu"]
+[ext_resource type="Material" uid="uid://vak2ho6b85vw" path="res://materials/asteroid_mat.tres" id="4_jyhfs"]
+[ext_resource type="Script" uid="uid://dv1whcrnla73a" path="res://scripts/player.gd" id="5_tbgi4"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_jyhfs"]
+shader = ExtResource("1_sugp2")
+shader_parameter/sky_color = Color(0.016560338, 0.027459737, 0.07134987, 1)
+shader_parameter/star_base_color = Color(0.7558879, 0.7617178, 0.51235217, 1)
+shader_parameter/star_hue_offset = 0.3950000187625
+shader_parameter/star_intensity = 0.08
+shader_parameter/star_twinkle_speed = 0.8
+shader_parameter/star_twinkle_intensity = 0.24800001178
+shader_parameter/layer_scale = 20.0
+shader_parameter/layer_scale_step = 10.0
+shader_parameter/layers_count = 3
+shader_parameter/planet_direction = Vector3(1, 0, 0)
+shader_parameter/planet_size = 0.05
+shader_parameter/planet_color = Color(0.5, 0.5, 0.5, 1)
+shader_parameter/planet_intensity = 1.0
+shader_parameter/glow_color = Color(0.2, 0.5, 1, 1)
+shader_parameter/glow_intensity = 0.5
+shader_parameter/glow_size = 0.02
+
+[sub_resource type="Sky" id="Sky_tbgi4"]
+sky_material = SubResource("ShaderMaterial_jyhfs")
+
+[sub_resource type="Environment" id="Environment_sgp6g"]
+background_mode = 2
+sky = SubResource("Sky_tbgi4")
+
+[sub_resource type="CapsuleShape3D" id="CapsuleShape3D_tbgi4"]
+
+[node name="Main" type="Node3D" unique_id=1616226551]
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="." unique_id=1032019248]
+environment = SubResource("Environment_sgp6g")
+
+[node name="Asteroid" type="Node3D" parent="." unique_id=211260076]
+script = ExtResource("1_o5qli")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Asteroid" unique_id=921840281]
+mesh = ExtResource("3_tefeu")
+script = ExtResource("2_0wfyh")
+mat = ExtResource("4_jyhfs")
+
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="." unique_id=471128222]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, 49, 0, 0)
+shadow_enabled = true
+
+[node name="Player" type="CharacterBody3D" parent="." unique_id=397678215]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 21, 26, 62)
+script = ExtResource("5_tbgi4")
+
+[node name="Camera3D" type="Camera3D" parent="Player" unique_id=1949285896]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.5, 0)
+
+[node name="Torch" type="SpotLight3D" parent="Player/Camera3D" unique_id=744771714]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.5, 3)
+spot_range = 50.0
+spot_attenuation = 0.1
+spot_angle = 35.0
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Player" unique_id=1173310429]
+shape = SubResource("CapsuleShape3D_tbgi4")
