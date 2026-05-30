@@ -13,29 +13,41 @@ class_name Player
 
 # ─── Input ────────────────────────────────────────────────────────────────────
 func _ready() -> void:
-	Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
+	camera.current = is_multiplayer_authority()
+	$MeshInstance3D.visible = !is_multiplayer_authority()
 
 func _unhandled_input(event: InputEvent) -> void:
+	if not is_multiplayer_authority():
+		return
+
+	if event is InputEventMouseButton:
+		if event.button_index == MOUSE_BUTTON_LEFT and event.pressed:
+			Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
+
+	if Input.mouse_mode != Input.MOUSE_MODE_CAPTURED:
+		return
+
 	if event is InputEventMouseMotion:
 		rotate_y(-event.relative.x * MOUSE_SENS)
 		camera.rotate_x(-event.relative.y * MOUSE_SENS)
 		camera.rotation.x = clampf(camera.rotation.x, -PI * 0.5, PI * 0.5)
-
 	if event.is_action_pressed("toggle_zero_g"):
 		zero_g = !zero_g
 		if zero_g:
 			velocity.y = 0.0
-
 	if event.is_action_pressed("ui_cancel"):
 		Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
 
 # ─── Physics ──────────────────────────────────────────────────────────────────
 func _physics_process(delta: float) -> void:
+	if not is_multiplayer_authority():
+		return
 	if zero_g:
 		_process_zero_g(delta)
 	else:
 		_process_grounded(delta)
 	move_and_slide()
+	update_remote_transform.rpc(global_transform,camera.global_transform)
 
 func _process_grounded(delta: float) -> void:
 	# Gravity
@@ -70,3 +82,9 @@ func _process_zero_g(_delta: float) -> void:
 		velocity = dir.normalized() * ZERO_G_SPEED
 	else:
 		velocity = Vector3.ZERO
+
+@rpc("any_peer", "unreliable_ordered")
+func update_remote_transform(player_transform: Transform3D, camera_transform: Transform3D) -> void:
+	if not is_multiplayer_authority():
+		global_transform = player_transform
+		camera.global_transform = camera_transform

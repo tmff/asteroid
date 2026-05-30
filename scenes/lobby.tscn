@@ -1,0 +1,118 @@
+[gd_scene format=3 uid="uid://bd7rcryqe6ytc"]
+
+[ext_resource type="Script" uid="uid://l126uts7t2gd" path="res://scripts/lobby/lobby.gd" id="1_s2678"]
+[ext_resource type="PackedScene" uid="uid://h080cxhr1uo5" path="res://scenes/main.tscn" id="2_5gu6x"]
+
+[node name="Lobby" type="Control" unique_id=239316335]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 1
+script = ExtResource("1_s2678")
+main_scene = ExtResource("2_5gu6x")
+
+[node name="Menu" type="PanelContainer" parent="." unique_id=263784617]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -102.0
+offset_top = -20.0
+offset_right = 102.0
+offset_bottom = 20.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="VBoxContainer" type="VBoxContainer" parent="Menu" unique_id=569816703]
+layout_mode = 2
+
+[node name="HBoxContainer" type="HBoxContainer" parent="Menu/VBoxContainer" unique_id=1075829169]
+layout_mode = 2
+
+[node name="Host" type="Button" parent="Menu/VBoxContainer/HBoxContainer" unique_id=948912912]
+custom_minimum_size = Vector2(100, 0)
+layout_mode = 2
+text = "Host"
+
+[node name="Client" type="Button" parent="Menu/VBoxContainer/HBoxContainer" unique_id=1396956803]
+auto_translate_mode = 1
+custom_minimum_size = Vector2(100, 0)
+layout_mode = 2
+text = "Join"
+
+[node name="VBoxContainer" type="VBoxContainer" parent="Menu/VBoxContainer" unique_id=1381403599]
+layout_mode = 2
+
+[node name="IP" type="TextEdit" parent="Menu/VBoxContainer/VBoxContainer" unique_id=1501726237]
+custom_minimum_size = Vector2(150, 35)
+layout_mode = 2
+placeholder_text = "IP Address"
+
+[node name="Port" type="SpinBox" parent="Menu/VBoxContainer/VBoxContainer" unique_id=147871490]
+auto_translate_mode = 1
+custom_minimum_size = Vector2(150, 30)
+layout_mode = 2
+min_value = 1000.0
+max_value = 9999.0
+value = 1008.0
+
+[node name="Connecting" type="PanelContainer" parent="." unique_id=896196640]
+visible = false
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -100.0
+offset_top = -20.0
+offset_right = 100.0
+offset_bottom = 20.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Label" type="Label" parent="Connecting" unique_id=1468247687]
+layout_mode = 2
+text = "Connecting..."
+horizontal_alignment = 1
+
+[node name="GameLobby" type="PanelContainer" parent="." unique_id=1258335097]
+visible = false
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -20.0
+offset_top = -20.0
+offset_right = 20.0
+offset_bottom = 20.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="VBoxContainer" type="VBoxContainer" parent="GameLobby" unique_id=726128382]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="GameLobby/VBoxContainer" unique_id=805729908]
+layout_mode = 2
+text = "Lobby"
+horizontal_alignment = 1
+
+[node name="Label2" type="Label" parent="GameLobby/VBoxContainer" unique_id=916535450]
+layout_mode = 2
+text = "Connected Players"
+horizontal_alignment = 1
+
+[node name="Start" type="Button" parent="GameLobby/VBoxContainer" unique_id=2002862692]
+layout_mode = 2
+text = "Start"
+
+[connection signal="pressed" from="Menu/VBoxContainer/HBoxContainer/Host" to="." method="_on_host_pressed"]
+[connection signal="pressed" from="Menu/VBoxContainer/HBoxContainer/Client" to="." method="_on_client_pressed"]
+[connection signal="pressed" from="GameLobby/VBoxContainer/Start" to="." method="load_main"]

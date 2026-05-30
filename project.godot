@@ -11,7 +11,7 @@ config_version=5
 [application]
 
 config/name="AstroidMiner"
-run/main_scene="uid://h080cxhr1uo5"
+run/main_scene="uid://bd7rcryqe6ytc"
 config/features=PackedStringArray("4.6", "GL Compatibility")
 config/icon="res://icon.svg"
 
