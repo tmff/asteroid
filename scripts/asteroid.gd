@@ -34,7 +34,7 @@ func _ready() -> void:
 	stress.resize(total)
 	generate_asteroid()
 	recalculate_support_field()
-	$MeshInstance3D.build_mesh(self)
+	$MeshInstance3D.build_mesh(self,$Scanner)
 
 
 func generate_asteroid():
@@ -42,13 +42,22 @@ func generate_asteroid():
 	var radius := SIZE.x * 0.4
 	core_position = center
 
+	# pick a random offset for the ore cluster, kept well inside the asteroid
+	var ore_center := Vector3i(
+		center.x + randi_range(-8, 8),
+		center.y + randi_range(-8, 8),
+		center.z + randi_range(-8, 8)
+	)
+	var ore_radius := 6.0
+
 	for z in SIZE.z:
 		for y in SIZE.y:
 			for x in SIZE.x:
 				var dist := Vector3(x, y, z).distance_to(Vector3(center))
 				var noise := randf_range(-3.0, 3.0)
 				if dist < radius + noise:
-					voxels[index(x, y, z)] = ORE if _ore_at(x, y, z) else ROCK
+					var ore_dist := Vector3(x, y, z).distance_to(Vector3(ore_center))
+					voxels[index(x, y, z)] = ORE if ore_dist < ore_radius else ROCK
 				else:
 					voxels[index(x, y, z)] = EMPTY
 
@@ -157,7 +166,8 @@ func detonate_line(start: Vector3, direction: Vector3, steps: int) -> int:
 
 	if calculate_global_instability() >= COLLAPSE_THRESHOLD:
 		return -1
-
+	
+	$MeshInstance3D.build_mesh(self,$Scanner)
 	return ore_mined
 
 

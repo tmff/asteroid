@@ -32,11 +32,13 @@ func _unhandled_input(event: InputEvent) -> void:
 		camera.rotate_x(-event.relative.y * MOUSE_SENS)
 		camera.rotation.x = clampf(camera.rotation.x, -PI * 0.5, PI * 0.5)
 	if event.is_action_pressed("toggle_zero_g"):
-		zero_g = !zero_g
-		if zero_g:
-			velocity.y = 0.0
+		toggle_gravity.rpc()
 	if event.is_action_pressed("ui_cancel"):
 		Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
+	if event.is_action_pressed("use_scanner"):
+		var asteroid = get_tree().get_first_node_in_group("asteroid")
+		var scanner := asteroid.get_node("Scanner") as Scanner
+		scanner.scan_all()
 
 # ─── Physics ──────────────────────────────────────────────────────────────────
 func _physics_process(delta: float) -> void:
@@ -82,6 +84,12 @@ func _process_zero_g(_delta: float) -> void:
 		velocity = dir.normalized() * ZERO_G_SPEED
 	else:
 		velocity = Vector3.ZERO
+
+@rpc("any_peer")
+func toggle_gravity():
+	zero_g = !zero_g
+	if zero_g:
+		velocity.y = 0.0
 
 @rpc("any_peer", "unreliable_ordered")
 func update_remote_transform(player_transform: Transform3D, camera_transform: Transform3D) -> void:

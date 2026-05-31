@@ -2,6 +2,7 @@ extends MeshInstance3D
 class_name AsteroidMesh
 
 @export var mat : Material
+@export var scan_mat : Material
 
 # ─── MC Tables ────────────────────────────────────────────────────────────────
 # edge_table[256]: which edges are cut for each corner bitmask
@@ -190,17 +191,19 @@ var _density : PackedFloat32Array
 const ISO_LEVEL   := 0.0
 const NOISE_SCALE := 0.08
 const SPHERE_BLEND := 4.0  # how sharply the sphere mask cuts off
+const ORE_ISO_LEVEL := -0.4  # sits between ore (-0.5) and rock (positive)
 
 # ─── Entry point ──────────────────────────────────────────────────────────────
-func build_mesh(ast: Asteroid) -> void:
+func build_mesh(ast: Asteroid, scanner: Scanner = null) -> void:
 	asteroid = ast
 	_build_density()
 	var m := ArrayMesh.new()
-	_march(m, Asteroid.ROCK)
-	#_march(m, Asteroid.ORE)
+	_march_rock(m)
+	_march_ore(m, scanner)
 	mesh = m
-	_save_mesh()
-	mesh.surface_set_material(0,mat)
+	mesh.surface_set_material(0, mat)
+	mesh.surface_set_material(1, scan_mat)
+	scanner._scan_mat = scan_mat
 
 
 # ─── Density field ────────────────────────────────────────────────────────────
@@ -221,16 +224,22 @@ func _build_density() -> void:
 	for z in size.z:
 		for y in size.y:
 			for x in size.x:
+				var idx    := asteroid.index(x, y, z)
 				var p      := Vector3(x, y, z)
-				var sphere := radius - p.distance_to(center)  # positive inside
-				var n      := _noise.get_noise_3d(x, y, z)    # -1..1
-				# blend: sphere dominates near edge, noise warps the interior
+				var sphere := radius - p.distance_to(center)
+				var n      := _noise.get_noise_3d(x, y, z)
 				var d      := sphere / SPHERE_BLEND + n
-				_density[asteroid.index(x, y, z)] = d
+
+				if asteroid.voxels[idx] == Asteroid.ORE:
+					d = -0.5
+				elif asteroid.stress[idx] / max(asteroid.support[idx], 1.0) >= Scanner.HIGH_STRESS_RATIO:
+					d = -0.5  # same treatment as ore so MC generates geometry
+
+				_density[idx] = d
 
 
 # ─── Marching cubes ───────────────────────────────────────────────────────────
-func _march(m: ArrayMesh, surface_type: int) -> void:
+func _march_rock(m: ArrayMesh) -> void:
 	var verts   : PackedVector3Array
 	var normals : PackedVector3Array
 	var uvs     : PackedVector2Array
@@ -300,6 +309,109 @@ func _march(m: ArrayMesh, surface_type: int) -> void:
 	arrays[Mesh.ARRAY_TEX_UV] = uvs
 	arrays[Mesh.ARRAY_INDEX]  = indices
 	m.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, arrays)
+	
+func _march_ore(m: ArrayMesh, scanner: Scanner) -> void:
+	var verts   : PackedVector3Array
+	var normals : PackedVector3Array
+	var colors  : PackedColorArray
+	var indices : PackedInt32Array
+	var vert_offset := 0
+	var size := Asteroid.SIZE
+	var cube_count := 0
+
+	for z in size.z - 1:
+		for y in size.y - 1:
+			for x in size.x - 1:
+				var is_ore     := false
+				var is_damaged := false
+
+				for i in 8:
+					var c = Vector3i(x, y, z) + CORNERS[i]
+					if not asteroid.in_bounds(c):
+						continue
+					var cidx := asteroid.indexv(c)
+					if asteroid.voxels[cidx] == Asteroid.ORE:
+						is_ore = true
+					if scanner:
+						var ratio = asteroid.stress[cidx] / max(asteroid.support[cidx], 1.0)
+						if ratio >= Scanner.HIGH_STRESS_RATIO:
+							is_damaged = true
+
+				if not is_ore and not is_damaged:
+					continue
+
+				cube_count += 1
+
+				var d : Array = []
+				d.resize(8)
+				for i in 8:
+					var c = Vector3i(x, y, z) + CORNERS[i]
+					d[i] = _density[asteroid.index(c.x, c.y, c.z)]
+
+				var cube_idx := 0
+				for i in 8:
+					if d[i] > ORE_ISO_LEVEL:
+						cube_idx |= (1 << i)
+
+				if cube_idx == 0 or cube_idx == 255:
+					continue
+
+				var edges = EDGE_TABLE[cube_idx]
+				if edges == 0:
+					continue
+
+				var edge_verts : Array = []
+				edge_verts.resize(12)
+				edge_verts.fill(Vector3.ZERO)
+				for e in 12:
+					if edges & (1 << e):
+						var ca = EDGE_CORNERS[e][0]
+						var cb = EDGE_CORNERS[e][1]
+						var pa := Vector3(Vector3i(x, y, z) + CORNERS[ca])
+						var pb := Vector3(Vector3i(x, y, z) + CORNERS[cb])
+						var da = d[ca]
+						var db = d[cb]
+						var t  = (ORE_ISO_LEVEL - da) / (db - da)
+						edge_verts[e] = pa.lerp(pb, t)
+
+				var col := Color(
+					1.0 if is_ore else 0.0,
+					1.0 if is_damaged else 0.0,
+					0.0
+				)
+
+				var tris = TRI_TABLE[cube_idx]
+				var i    := 0
+				while i < tris.size() and tris[i] != -1:
+					verts.append(edge_verts[tris[i]])
+					normals.append(_gradient_normal(edge_verts[tris[i]]))
+					colors.append(col)
+					verts.append(edge_verts[tris[i + 1]])
+					normals.append(_gradient_normal(edge_verts[tris[i + 1]]))
+					colors.append(col)
+					verts.append(edge_verts[tris[i + 2]])
+					normals.append(_gradient_normal(edge_verts[tris[i + 2]]))
+					colors.append(col)
+					indices.append(vert_offset)
+					indices.append(vert_offset + 1)
+					indices.append(vert_offset + 2)
+					vert_offset += 3
+					i += 3
+
+	print("ore cubes emitted: ", cube_count)
+	print("ore verts: ", verts.size())
+
+	if verts.is_empty():
+		return
+
+	var arrays := []
+	arrays.resize(Mesh.ARRAY_MAX)
+	arrays[Mesh.ARRAY_VERTEX] = verts
+	arrays[Mesh.ARRAY_NORMAL] = normals
+	arrays[Mesh.ARRAY_COLOR]  = colors
+	arrays[Mesh.ARRAY_INDEX]  = indices
+	m.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, arrays)
+
 
 
 # ─── Density gradient → smooth normal ─────────────────────────────────────────

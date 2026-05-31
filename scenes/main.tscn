@@ -5,8 +5,9 @@
 [ext_resource type="Shader" uid="uid://dm73abt1ajdo3" path="res://shaders/sky.gdshader" id="1_sugp2"]
 [ext_resource type="Script" uid="uid://b7i14h7nim80g" path="res://scripts/asteroid_mesh.gd" id="2_0wfyh"]
 [ext_resource type="PackedScene" uid="uid://cr81ex5r1oxgc" path="res://scenes/player.tscn" id="2_o6xl0"]
-[ext_resource type="ArrayMesh" path="res://asteroid_mesh.res" id="3_tefeu"]
 [ext_resource type="Material" uid="uid://vak2ho6b85vw" path="res://materials/asteroid_mat.tres" id="4_jyhfs"]
+[ext_resource type="Shader" uid="uid://dtnoykop6wnkq" path="res://shaders/asteroid_scanner.gdshader" id="8_85g3d"]
+[ext_resource type="Script" uid="uid://28dxl1u85o3a" path="res://scripts/scanner.gd" id="8_tipki"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_jyhfs"]
 shader = ExtResource("1_sugp2")
@@ -34,6 +35,15 @@ sky_material = SubResource("ShaderMaterial_jyhfs")
 background_mode = 2
 sky = SubResource("Sky_tbgi4")
 
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_choun"]
+render_priority = 1
+shader = ExtResource("8_85g3d")
+shader_parameter/ore_color = Color(1, 0.82, 0.1, 1)
+shader_parameter/damage_color = Color(1, 0.15, 0.1, 1)
+shader_parameter/highlight_mix = 0.65
+shader_parameter/pulse_speed = 2.5
+shader_parameter/scan_active = false
+
 [node name="Main" type="Node3D" unique_id=1616226551 node_paths=PackedStringArray("player_spawn_points")]
 script = ExtResource("1_o6xl0")
 player_spawn_points = [NodePath("PlayerSpawns/Node3D")]
@@ -42,13 +52,16 @@ player_scene = ExtResource("2_o6xl0")
 [node name="WorldEnvironment" type="WorldEnvironment" parent="." unique_id=1032019248]
 environment = SubResource("Environment_sgp6g")
 
-[node name="Asteroid" type="Node3D" parent="." unique_id=211260076]
+[node name="Asteroid" type="Node3D" parent="." unique_id=211260076 groups=["asteroid"]]
 script = ExtResource("1_o5qli")
 
 [node name="MeshInstance3D" type="MeshInstance3D" parent="Asteroid" unique_id=921840281]
-mesh = ExtResource("3_tefeu")
 script = ExtResource("2_0wfyh")
 mat = ExtResource("4_jyhfs")
+scan_mat = SubResource("ShaderMaterial_choun")
+
+[node name="Scanner" type="Node3D" parent="Asteroid" unique_id=871268899]
+script = ExtResource("8_tipki")
 
 [node name="DirectionalLight3D" type="DirectionalLight3D" parent="." unique_id=471128222]
 transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, 49, 0, 0)
