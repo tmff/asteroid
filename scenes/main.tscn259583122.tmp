@@ -42,9 +42,12 @@ shader_parameter/ore_color = Color(1, 0.82, 0.1, 1)
 shader_parameter/damage_color = Color(1, 0.15, 0.1, 1)
 shader_parameter/highlight_mix = 0.65
 shader_parameter/pulse_speed = 2.5
-shader_parameter/scan_origin = Vector3(32, 32, 32)
-shader_parameter/scan_radius = -9999.0
-shader_parameter/scan_band_width = 4.0
+shader_parameter/pulse_width = 1.2
+shader_parameter/fade_duration = 0.6
+shader_parameter/scan_active = false
+shader_parameter/pulse_start_time = 0.0
+shader_parameter/max_radius = 200.0
+shader_parameter/pulse_origin = Vector3(0, 0, 0)
 
 [node name="Main" type="Node3D" unique_id=1616226551 node_paths=PackedStringArray("player_spawn_points")]
 script = ExtResource("1_o6xl0")
@@ -64,7 +67,6 @@ scan_mat = SubResource("ShaderMaterial_choun")
 
 [node name="Scanner" type="Node3D" parent="Asteroid" unique_id=871268899]
 script = ExtResource("8_tipki")
-scan_speed = 30.0
 
 [node name="DirectionalLight3D" type="DirectionalLight3D" parent="." unique_id=471128222]
 transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, 49, 0, 0)
