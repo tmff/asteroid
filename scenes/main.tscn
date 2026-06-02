@@ -8,6 +8,7 @@
 [ext_resource type="Material" uid="uid://vak2ho6b85vw" path="res://materials/asteroid_mat.tres" id="4_jyhfs"]
 [ext_resource type="Shader" uid="uid://dtnoykop6wnkq" path="res://shaders/asteroid_scanner.gdshader" id="8_85g3d"]
 [ext_resource type="Script" uid="uid://28dxl1u85o3a" path="res://scripts/scanner.gd" id="8_tipki"]
+[ext_resource type="PackedScene" uid="uid://pojfcd028int" path="res://scenes/bomb.tscn" id="9_85g3d"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_jyhfs"]
 shader = ExtResource("1_sugp2")
@@ -54,7 +55,7 @@ player_scene = ExtResource("2_o6xl0")
 [node name="WorldEnvironment" type="WorldEnvironment" parent="." unique_id=1032019248]
 environment = SubResource("Environment_sgp6g")
 
-[node name="Asteroid" type="Node3D" parent="." unique_id=211260076 groups=["asteroid"]]
+[node name="Asteroid" type="StaticBody3D" parent="." unique_id=124360304 groups=["asteroid"]]
 script = ExtResource("1_o5qli")
 
 [node name="MeshInstance3D" type="MeshInstance3D" parent="Asteroid" unique_id=921840281]
@@ -66,10 +67,14 @@ scan_mat = SubResource("ShaderMaterial_choun")
 script = ExtResource("8_tipki")
 scan_speed = 30.0
 
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Asteroid" unique_id=1691169351]
+
 [node name="DirectionalLight3D" type="DirectionalLight3D" parent="." unique_id=471128222]
-transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, 49, 0, 0)
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, 0, 0, 0)
 shadow_enabled = true
 
 [node name="PlayerSpawns" type="Node3D" parent="." unique_id=1563096134]
 
 [node name="Node3D" type="Node3D" parent="PlayerSpawns" unique_id=1898091088]
+
+[node name="Bomb" parent="." unique_id=866661411 instance=ExtResource("9_85g3d")]

@@ -1,0 +1,11 @@
+[gd_scene format=3 uid="uid://pojfcd028int"]
+
+[ext_resource type="Script" uid="uid://btofjddasdm4b" path="res://scripts/bomb.gd" id="1_4kkau"]
+
+[sub_resource type="BoxMesh" id="BoxMesh_4kkau"]
+
+[node name="Bomb" type="Node3D" unique_id=866661411]
+script = ExtResource("1_4kkau")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="." unique_id=457318302]
+mesh = SubResource("BoxMesh_4kkau")

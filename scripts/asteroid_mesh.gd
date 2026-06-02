@@ -232,9 +232,6 @@ func _build_density() -> void:
 
 				if asteroid.voxels[idx] == Asteroid.ORE:
 					d = -0.5
-				elif asteroid.stress[idx] / max(asteroid.support[idx], 1.0) >= Scanner.HIGH_STRESS_RATIO:
-					d = -0.5  # same treatment as ore so MC generates geometry
-
 				_density[idx] = d
 
 
@@ -332,11 +329,6 @@ func _march_ore(m: ArrayMesh, scanner: Scanner) -> void:
 					var cidx := asteroid.indexv(c)
 					if asteroid.voxels[cidx] == Asteroid.ORE:
 						is_ore = true
-					if scanner:
-						var ratio = asteroid.stress[cidx] / max(asteroid.support[cidx], 1.0)
-						if ratio >= Scanner.HIGH_STRESS_RATIO:
-							is_damaged = true
-
 				if not is_ore and not is_damaged:
 					continue
 
@@ -473,6 +465,13 @@ func _cube_belongs_to(x: int, y: int, z: int, surface_type: int) -> bool:
 		if v == surface_type:
 			return true
 	return false
+
+func build_collider() -> Shape3D:
+	if !mesh:
+		printerr("Mesh must be generated before getting collider")
+		return null
+	return mesh.create_trimesh_shape()
+
 	
 func _save_mesh() -> void:
 	var err := ResourceSaver.save(mesh, "res://asteroid_mesh.res")
